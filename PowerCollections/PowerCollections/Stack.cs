@@ -10,7 +10,7 @@ namespace Wintellect.PowerCollections
 
         T[] items;
 
-        public Stack(int size)
+        public Stack(int size = 100)
         {
             if (size < 0)
             {
