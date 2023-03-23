@@ -1,0 +1,36 @@
+name: workflow2
+on: workflow_dispatch
+  
+jobs:
+
+  workflow2:
+
+    runs-on: windows-latest 
+    
+    permissions: write-all
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetct-depth: 0
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3.0.3
+      with:
+        dotnet-version: 6.0.x 
+    - name: dotnet pack
+      run: dotnet pack
+      working-directory: PowerCollections  
+    - name: dotnet push
+      run: dotnet nuget push "PowerCollections\PowerCollections\bin\Debug\*.nupkg" -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/BoKut0/index.json --skip-duplicate
+    - name: Get XML
+      id: getxml
+      uses: mavrosxristoforos/get-xml-info@1.1.1
+      with: 
+        xml-file: 'PowerCollections/PowerCollections/PowerCollections.csproj'
+        xpath: '//Version'
+    - name: release 
+      uses: ncipollo/release-action@v1.12.0
+      with: 
+        tag: 'v${{ steps.getxml.outputs.info }}'
+        artifacts: 'PowerCollections\PowerCollections\bin\Debug\*${{ steps.getxml.outputs.info }}.nupkg'
