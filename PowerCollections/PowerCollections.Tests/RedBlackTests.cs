@@ -124,7 +124,7 @@ namespace Wintellect.PowerCollections.Tests {
 #if DEBUG
 			tree.Validate();
 #endif //DEBUG
-            Assert.AreEqual(null, oldData.data);
+            Assert.AreEqual(expectedOldData, oldData.data);
         }
 
         /// <summary>
