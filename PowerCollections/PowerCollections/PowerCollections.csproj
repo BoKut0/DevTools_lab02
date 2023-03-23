@@ -6,6 +6,6 @@
 
 		<PackageId>RyabinArtem.PowerCollections</PackageId>
 		<repositoryUrl>https://github.com/BoKut0/DevTools_lab02.git</repositoryUrl>
-		<Version>0.0.2-beta</Version>
+		<Version>0.0.3-beta</Version>
 	</PropertyGroup>
 </Project>
