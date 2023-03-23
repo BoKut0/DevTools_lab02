@@ -12,8 +12,8 @@ namespace Wintellect.PowerCollections
 
         public Stack(int size = 100)
         {
-            if (size < 0
-            
+            if (size < 0)
+            {
                 throw new InvalidOperationException("Размер стека не должен быть меньше 0");
             }
             Capacity = size;
