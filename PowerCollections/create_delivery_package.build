@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Import Project="Tasks\MSBuild.Community.Tasks.Targets"/>
+
+    <PropertyGroup>
+        <configuration>Debug</configuration>
+        <resources>true</resources>
+        <ignoreTests>false</ignoreTests>
+    </PropertyGroup>
+      
+    <Target Name="RunTests">
+        <Message Text="Start testing..." />
+        <Exec Command="dotnet test" WorkingDirectory="PowerCollections.Tests" />
+        <OnError ExecuteTargets="CreateDeliveryPackage" Condition="$(ignoreTests) == 'true'" />
+        <OnError ExecuteTargets="TestsError" Condition="$(ignoreTests) == 'false'" />
+    </Target>
+
+    <Target Name="TestsError">
+        <Error Text="Tests failed." Condition="$(ignoreTests) == 'false'" />
+    </Target>
+
+    <ItemGroup>
+        <Docs Include="$(MSBuildProjectDirectory)/docfx_project/_site/**/*" />
+        <ResourcesFiles Include="$(MSBuildProjectDirectory)/PowerCollections/*.cs" />
+        <ProjectFile Include="$(MSBuildProjectDirectory)/PowerCollections/PowerCollections.csproj" />
+        <SolutionFile Include="$(MSBuildProjectDirectory)/*.sln" />
+    </ItemGroup>
+
+    <Target Name="CreateDeliveryPackage">
+        <Message Text="Creating zip..." />
+
+        <Version VersionFile="version.txt" BuildType="Increment" RevisionType="None">
+            <Output TaskParameter="Major" PropertyName="Major" />
+            <Output TaskParameter="Minor" PropertyName="Minor" />
+            <Output TaskParameter="Build" PropertyName="Build" />
+            <Output TaskParameter="Revision" PropertyName="Revision" />
+        </Version>
+        <RemoveDir Directories="$(MSBuildProjectDirectory)\PowerCollections\bin\" />
+        <Message Text="Start msbuild..." />
+        <Exec Command="msbuild -t:pack -p:Configuration=$(configuration) -p:VersionPrefix=$(Major).$(Minor).$(Build)" WorkingDirectory="$(MSBuildProjectDirectory)" />
+        <Message Text="Start docfx..." />
+        <Exec Command="docfx docfx_project/docfx.json -t statictoc" WorkingDirectory="$(MSBuildProjectDirectory)" />
+        
+        <Copy SourceFiles="@(ResourcesFiles)" DestinationFolder="zip/src/PowerCollections/" Condition="$(resources) == 'true'" />
+        <Copy SourceFiles="@(ProjectFile)" DestinationFolder="zip/src/PowerCollections" Condition="$(resources) == 'true'" />
+        <Copy SourceFiles="@(SolutionFile)" DestinationFolder="zip/src/" Condition="$(resources) == 'true'" />
+
+        <Copy SourceFiles="@(Docs)" DestinationFolder="zip/doc/%(RecursiveDir)" />
+        <Exec Command="xcopy $(MSBuildProjectDirectory)\PowerCollections\bin zip\bin /e /i /h" />
+        <ZipDirectory SourceDirectory="zip" Overwrite="true" DestinationFile="$(MSBuildProjectDirectory)\PowerCollections_$([System.DateTime]::Now.ToString(yyyyMMdd))_$(Major).$(Minor).$(Build).zip" />
+        <RemoveDir Directories="$(MSBuildProjectDirectory)\zip\" />
+    </Target>
+
+    <Target Name="Build">
+        <CallTarget Targets="RunTests" />
+        <CallTarget Targets="CreateDeliveryPackage" />
+    </Target>
+</Project>
